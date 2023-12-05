@@ -9,6 +9,8 @@ import Home from '../screens/Home';
 import Patterns from '../screens/Patterns';
 import Search from '../screens/Search';
 import Yarns from '../screens/Yarns';
+import ShoppingList from '../screens/ShoppingList';
+import Favorites from '../screens/Favorites';
 
 
 //    const Stack = createNativeStackNavigator();
@@ -37,6 +39,11 @@ export default function App() {
                     <Tab.Screen name="Search" icon="search" component={Search} />
                     <Tab.Screen name="Patterns" component={Patterns} />
                     <Tab.Screen name="Yarns" component={Yarns} />
+                    <Tab.Screen name="Shopping list" component={ShoppingList} />
+                    <Tab.Screen name="Favorites" component={Favorites} />
+
+                    
+
                 </Tab.Navigator>
             </NavigationContainer>
 

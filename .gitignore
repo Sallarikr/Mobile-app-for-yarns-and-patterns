@@ -33,3 +33,10 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+#Api keys
+firebaseYarnConfig.js
+firebasePatternConfig.js
+
+# ignore dotenv configuration file
+.env
