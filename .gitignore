@@ -37,7 +37,6 @@ yarn-error.*
 #Api keys
 firebaseYarnConfig.js
 firebasePatternConfig.js
-firebaseShoppingListConfig
 
 # ignore dotenv configuration file
 .env
