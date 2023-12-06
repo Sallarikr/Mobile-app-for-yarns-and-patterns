@@ -33,10 +33,12 @@ export default function App() {
 
             <NavigationContainer>
                 <Tab.Navigator>
+                <Tab.Screen name="Search" icon="search" component={Search} />
+
+                <Tab.Screen name="Yarns" component={Yarns} />
+
                     <Tab.Screen name="Home" component={Home} />
-                    <Tab.Screen name="Search" icon="search" component={Search} />
                     <Tab.Screen name="Patterns" component={Patterns} />
-                    <Tab.Screen name="Yarns" component={Yarns} />
                 </Tab.Navigator>
             </NavigationContainer>
 
