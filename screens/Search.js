@@ -207,8 +207,7 @@ export default function Search() {
           'id': item.id,
           'manufacturer': item.manufacturer,
           'name': item.name,
-          'yarn_weight': item.yarn_weight.name,
-
+          'yarn_weight': item.yarn_weight,
         });
         setItems((prevItems) => [
           ...prevItems,
@@ -217,8 +216,7 @@ export default function Search() {
             'id': item.id,
             'manufacturer': item.manufacturer,
             'name': item.name,
-            'yarn_weight': item.yarn_weight.name,
-
+            'yarn_weight': item.yarn_weight,
             'id': newItemRef.key,
           },
         ]);
