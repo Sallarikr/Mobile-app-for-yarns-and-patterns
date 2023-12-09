@@ -1,6 +1,6 @@
 import { Button, Icon, Input, Text } from '@rneui/themed';
 import { Card } from "@rneui/base";
-import { ActionSheetIOS, Alert, Keyboard, ScrollView, StyleSheet, View } from 'react-native';
+import { ActionSheetIOS, ActivityIndicator, Alert, Keyboard, ScrollView, StyleSheet, View } from 'react-native';
 import { useState, useEffect } from "react";
 import { decode, encode } from 'base-64';
 import { API_USERNAME, API_PASSWORD } from '@env';
@@ -23,29 +23,39 @@ export default function Search() {
   const [itemType, setItemType] = useState('');
   const [search, setSearch] = useState('');
   const [searchBarText, setSearchBarText] = useState('Please choose a category from above');
+  const [loading, setLoading] = useState(false);
   const [items, setItems] = useState([]);
   const [searchedItems, setSearchedItems] = useState([]);
+  
+  const options = {
+    headers: {
+      'Authorization': 'Basic ' + btoa(`${API_USERNAME}:${API_PASSWORD}`)
+    }
+  };
+
+  const fetchYarnWeight = async (patternId) => {
+    const ravelryPatternItemURL = `https://api.ravelry.com/patterns/${patternId}.json`;
+    const response = await fetch(ravelryPatternItemURL, options);
+    const data = await response.json();
+    const yarnWeight = data.pattern.yarn_weight ? data.pattern.yarn_weight.name : 'N/A';
+    return yarnWeight;
+  };
 
   const searchContent = async () => {
-    const options = {
-      headers: {
-        'Authorization': 'Basic ' + btoa(`${API_USERNAME}:${API_PASSWORD}`)
-      }
-    };
-
     try {
+      setLoading(true);
       if (itemType === 'pattern') {
         const ravelryPatternURL = 'https://api.ravelry.com/patterns/search.json?query=' + search;
         if (search.length === 0) {
           Alert.alert('Please enter some text to the search bar')
         } else {
           fetch(ravelryPatternURL, options)
-            .then(res => res.json())
-            .then(data => {
+            .then((res) => res.json())
+            .then(async (data) => {
               const patternArray = [];
               if (data && data.patterns) {
-                data.patterns.forEach(pattern => {
-                  const sources = pattern.pattern_sources.map(source => ({
+                for (const pattern of data.patterns) {
+                  const sources = pattern.pattern_sources.map((source) => ({
                     sourceName: source.name,
                   }));
                   const sourceNames = sources[0]?.name === sources[1]?.name;
@@ -59,15 +69,19 @@ export default function Search() {
                     sources: sources,
                     sourceName: sourceName,
                   };
+                  const yarnWeight = await fetchYarnWeight(pattern.id);
+                  patternInfo.yarn_weight = yarnWeight;
                   patternArray.push(patternInfo);
-                  console.log(data.patterns[0]);
-                });
+                }
               }
               if (patternArray.length === 0) {
                 Alert.alert('No patterns found');
               } else {
                 setSearchedItems(patternArray);
               }
+            })
+            .finally(() => {
+              setLoading(false);
             });
         }
       } else if (itemType === 'yarn') {
@@ -77,7 +91,7 @@ export default function Search() {
         } else {
           fetch(ravelryYarnURL, options)
             .then(res => res.json())
-            .then(data => {
+            .then(async (data) => {
               const yarnArray = [];
               if (data && data.yarns) {
                 data.yarns.forEach(yarn => {
@@ -85,6 +99,7 @@ export default function Search() {
                     id: yarn.id,
                     manufacturer: yarn.yarn_company_name,
                     name: yarn.name,
+                    yarn_weight: yarn.yarn_weight.name,
                   };
                   yarnArray.push(yarnInfo);
                 });
@@ -94,6 +109,9 @@ export default function Search() {
                   setSearchedItems(yarnArray);
                 }
               }
+            })
+            .finally(() => {
+              setLoading(false);
             });
         }
       } else {
@@ -106,6 +124,7 @@ export default function Search() {
       Keyboard.dismiss();
     } catch (error) {
       console.error('Error', error);
+      setLoading(false);
     }
   }
 
@@ -143,7 +162,7 @@ export default function Search() {
     if (itemType === '') {
       loadSavedItems();
     }
-  }, [itemType]);
+  }, [itemType, loading]);
 
   const saveItem = async (item) => {
     try {
@@ -166,8 +185,9 @@ export default function Search() {
           'id': item.id,
           'designer': item.designer,
           'name': item.name,
-          'sourceName': sources, 
-                });
+          'sourceName': sources,
+          'yarn_weight': item.yarn_weight,
+        });
         setItems((prevItems) => [
           ...prevItems,
           {
@@ -176,6 +196,7 @@ export default function Search() {
             'designer': item.designer,
             'name': item.name,
             'sourceName': sources,
+            'yarn_weight': item.yarn_weight,
             'id': newItemRef.key,
           },
         ]);
@@ -186,6 +207,8 @@ export default function Search() {
           'id': item.id,
           'manufacturer': item.manufacturer,
           'name': item.name,
+          'yarn_weight': item.yarn_weight.name,
+
         });
         setItems((prevItems) => [
           ...prevItems,
@@ -194,6 +217,8 @@ export default function Search() {
             'id': item.id,
             'manufacturer': item.manufacturer,
             'name': item.name,
+            'yarn_weight': item.yarn_weight.name,
+
             'id': newItemRef.key,
           },
         ]);
@@ -248,6 +273,7 @@ export default function Search() {
     setItemType('');
     setSearchBarText('Please choose a category from above');
     setSearchedItems([]);
+    setLoading(false);
     Keyboard.dismiss();
   };
 
@@ -283,6 +309,11 @@ export default function Search() {
           />
         </View>
       </View>
+      {loading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#d9a5cc" />
+        </View>
+      )}
       <ScrollView>
         {searchedItems.map((item) => (
           <Card key={item.id} containerStyle={styles.cardContainer}>
@@ -291,6 +322,7 @@ export default function Search() {
                 <View>
                   <Text>Designer: {item.designer}</Text>
                   <Text>Pattern name: {item.name}</Text>
+                  <Text>Yarn weight: {item.yarn_weight}</Text>
                   <View>
                     {item.sources.map((source, index) => (
                       <View key={index}>
@@ -303,19 +335,20 @@ export default function Search() {
                       </View>))}
                   </View>
                   <View style={styles.iconContainer}>
-                  <Icon
-                    onPress={() => confirmSave(item, 'pattern')}
-                    size={30}
-                    name='heart'
-                    type='ionicon'
-                    color='#d9a5cc'
-                  />
+                    <Icon
+                      onPress={() => confirmSave(item, 'pattern')}
+                      size={30}
+                      name='heart'
+                      type='ionicon'
+                      color='#d9a5cc'
+                    />
                   </View>
                 </View>
               ) : itemType === 'yarn' ? (
                 <View>
                   <Text>Manufacturer: {item.manufacturer}</Text>
                   <Text>Yarn name: {item.name}</Text>
+                  <Text>Yarn weight: {item.yarn_weight}</Text>
                   <Icon
                     onPress={() => confirmSave(item, 'yarn')}
                     size={30}
@@ -364,7 +397,13 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     alignItems: 'center',
-   marginTop: 10,
-
+    marginTop: 10,
+  },
+  loadingContainer: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
   },
 });
