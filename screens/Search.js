@@ -26,19 +26,37 @@ export default function Search() {
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState([]);
   const [searchedItems, setSearchedItems] = useState([]);
-  
+
   const options = {
     headers: {
       'Authorization': 'Basic ' + btoa(`${API_USERNAME}:${API_PASSWORD}`)
     }
   };
 
-  const fetchYarnWeight = async (patternId) => {
-    const ravelryPatternItemURL = `https://api.ravelry.com/patterns/${patternId}.json`;
-    const response = await fetch(ravelryPatternItemURL, options);
-    const data = await response.json();
-    const yarnWeight = data.pattern.yarn_weight ? data.pattern.yarn_weight.name : 'N/A';
-    return yarnWeight;
+  const fetchYarnExtras = async (patternId) => {
+    try {
+      const ravelryPatternItemURL = `https://api.ravelry.com/patterns/${patternId}.json`;
+      const response = await fetch(ravelryPatternItemURL, options);
+      const data = await response.json();
+      const craft = data.pattern.craft ? data.pattern.craft.name : 'Unknown';
+      const languages = data.pattern.languages ? data.pattern.languages.map(lang => lang.name) : 'Unknown';
+      const needles = data.pattern.pattern_needle_sizes ? data.pattern.pattern_needle_sizes.map(needle => needle.name) : 'Unknown';
+      const yardage_min = data.pattern.yardage;
+      const yardage_max = data.pattern.yardage_max;
+      const yarn_weight = data.pattern.yarn_weight ? data.pattern.yarn_weight.name : 'Unknown';
+      const yarnExtras = {
+        craft: craft,
+        languages: languages,
+        needles: needles,
+        yardage_min: yardage_min,
+        yardage_max: yardage_max,
+        yarn_weight: yarn_weight,
+      };
+      return yarnExtras;
+    } catch (error) {
+      console.error('Error fetching yarn weight data:', error);
+      return 'Unknown';
+    }
   };
 
   const searchContent = async () => {
@@ -47,6 +65,7 @@ export default function Search() {
       if (itemType === 'pattern') {
         const ravelryPatternURL = 'https://api.ravelry.com/patterns/search.json?query=' + search;
         if (search.length === 0) {
+          setLoading(false);
           Alert.alert('Please enter some text to the search bar')
         } else {
           fetch(ravelryPatternURL, options)
@@ -68,13 +87,14 @@ export default function Search() {
                     name: pattern.name,
                     sources: sources,
                     sourceName: sourceName,
+                    free: pattern.free,
+                    yarn_extras: await fetchYarnExtras(pattern.id),
                   };
-                  const yarnWeight = await fetchYarnWeight(pattern.id);
-                  patternInfo.yarn_weight = yarnWeight;
                   patternArray.push(patternInfo);
                 }
               }
               if (patternArray.length === 0) {
+                setLoading(false);
                 Alert.alert('No patterns found');
               } else {
                 setSearchedItems(patternArray);
@@ -87,6 +107,7 @@ export default function Search() {
       } else if (itemType === 'yarn') {
         const ravelryYarnURL = 'https://api.ravelry.com/yarns/search.json?query=' + search;
         if (search.length === 0) {
+          setLoading(false);
           Alert.alert('Please enter some text to the search bar')
         } else {
           fetch(ravelryYarnURL, options)
@@ -100,10 +121,15 @@ export default function Search() {
                     manufacturer: yarn.yarn_company_name,
                     name: yarn.name,
                     yarn_weight: yarn.yarn_weight.name,
+                    discontinued: yarn.discontinued,
+                    machine_washable: yarn.machine_washable,
+                    grams: yarn.grams,
+                    yardage: yarn.yardage,
                   };
                   yarnArray.push(yarnInfo);
                 });
                 if (yarnArray.length === 0) {
+                  setLoading(false);
                   Alert.alert('No yarns found');
                 } else {
                   setSearchedItems(yarnArray);
@@ -116,14 +142,16 @@ export default function Search() {
         }
       } else {
         if (itemType === ('') && (search.length === 0)) {
+          setLoading(false);
           Alert.alert("Please select a search category and enter some text to the search bar");
         } else if ((search.length > 0) && itemType === ('')) {
+          setLoading(false);
           Alert.alert("Please select a search category first");
         }
       }
       Keyboard.dismiss();
     } catch (error) {
-      console.error('Error', error);
+      console.error('Error during search:', error);
       setLoading(false);
     }
   }
@@ -186,7 +214,13 @@ export default function Search() {
           'designer': item.designer,
           'name': item.name,
           'sourceName': sources,
-          'yarn_weight': item.yarn_weight,
+          'free': item.free,
+          'craft': item.yarn_extras.craft,
+          'languages': item.yarn_extras.languages,
+          'needles': item.yarn_extras.needles,
+          'yardage_min': item.yarn_extras.yardage_min,
+          'yardage_max': item.yarn_extras.yardage_max,
+          'yarn_weight': item.yarn_extras.yarn_weight,
         });
         setItems((prevItems) => [
           ...prevItems,
@@ -196,7 +230,13 @@ export default function Search() {
             'designer': item.designer,
             'name': item.name,
             'sourceName': sources,
-            'yarn_weight': item.yarn_weight,
+            'free': item.free,
+            'craft': item.yarn_extras.craft,
+            'languages': item.yarn_extras.languages,
+            'needles': item.yarn_extras.needles,
+            'yardage_min': item.yarn_extras.yardage_min,
+            'yardage_max': item.yarn_extras.yardage_max,
+            'yarn_weight': item.yarn_extras.yarn_weight,
             'id': newItemRef.key,
           },
         ]);
@@ -208,6 +248,10 @@ export default function Search() {
           'manufacturer': item.manufacturer,
           'name': item.name,
           'yarn_weight': item.yarn_weight,
+          'discontinued': item.discontinued,
+          'machine_washable': item.machine_washable,
+          'grams': item.grams,
+          'yardage': item.yardage,
         });
         setItems((prevItems) => [
           ...prevItems,
@@ -217,6 +261,10 @@ export default function Search() {
             'manufacturer': item.manufacturer,
             'name': item.name,
             'yarn_weight': item.yarn_weight,
+            'discontinued': item.discontinued,
+            'machine_washable': item.machine_washable,
+            'grams': item.grams,
+            'yardage': item.yardage,
             'id': newItemRef.key,
           },
         ]);
@@ -320,7 +368,13 @@ export default function Search() {
                 <View>
                   <Text>Designer: {item.designer}</Text>
                   <Text>Pattern name: {item.name}</Text>
-                  <Text>Yarn weight: {item.yarn_weight}</Text>
+                  <Text>Free: {item.free ? 'Yes' : 'No'}</Text>
+                  <Text>Craft: {item.yarn_extras.craft}</Text>
+                  <Text>Languages: {item.yarn_extras.languages.join(', ')}</Text>
+                  <Text>Needles: {item.yarn_extras.needles.join(', ')}</Text>
+                  <Text>Yardage: {item.yarn_extras.yardage_min} - {item.yarn_extras.yardage_max} yards</Text>
+                  <Text>Yardage in meters: {Math.round(item.yarn_extras.yardage_min * 0.9144)} - {Math.round(item.yarn_extras.yardage_max * 0.9144)} meters</Text>
+                  <Text>Yarn weight: {item.yarn_extras.yarn_weight}</Text>
                   <View>
                     {item.sources.map((source, index) => (
                       <View key={index}>
@@ -347,6 +401,11 @@ export default function Search() {
                   <Text>Manufacturer: {item.manufacturer}</Text>
                   <Text>Yarn name: {item.name}</Text>
                   <Text>Yarn weight: {item.yarn_weight}</Text>
+                  <Text>Discontinued: {item.discontinued ? 'Yes' : 'No'}</Text>
+                  <Text>Machine washable: {item.machine_washable ? 'Yes' : 'No'}</Text>
+                  <Text>Grams: {item.grams} grams</Text>
+                  <Text>Yardage: {item.yardage} yards</Text>
+                  <Text>Yardage in meters: {Math.round(item.yardage * 0.9144)} meters</Text>
                   <Icon
                     onPress={() => confirmSave(item, 'yarn')}
                     size={30}
