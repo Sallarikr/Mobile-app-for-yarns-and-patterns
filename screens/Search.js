@@ -1,10 +1,11 @@
-import { Button, Input, Text } from '@rneui/themed';
-import { ActionSheetIOS, Alert, StyleSheet, View } from 'react-native';
+import { Button, Icon, Input, Text } from '@rneui/themed';
+import { Card } from "@rneui/base";
+import { ActionSheetIOS, Alert, Keyboard, ScrollView, StyleSheet, View } from 'react-native';
 import { useState, useEffect } from "react";
 import { decode, encode } from 'base-64';
 import { API_USERNAME, API_PASSWORD } from '@env';
 import { initializeApp } from 'firebase/app';
-import { getDatabase, push, ref, onValue } from 'firebase/database';
+import { getDatabase, push, get, ref, onValue } from 'firebase/database';
 import firebaseConfig from '../firebaseConfig';
 
 if (!global.btoa) {
@@ -17,19 +18,15 @@ if (!global.atob) {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
-function Search() {
+export default function Search() {
 
-  const [itemType, setItemType] = useState();
+  const [itemType, setItemType] = useState('');
   const [search, setSearch] = useState('');
-  const [searhBarText, setSearchBarText] = useState('');
-  const [manufacturer, setManufacturer] = useState('');
-  const [yarnName, setYarnName] = useState('');
-  const [creator, setCreator] = useState('');
-  const [patternName, setPatternName] = useState('');
+  const [searchBarText, setSearchBarText] = useState('Please choose a category from above');
   const [items, setItems] = useState([]);
+  const [searchedItems, setSearchedItems] = useState([]);
 
   const searchContent = async () => {
-
     const options = {
       headers: {
         'Authorization': 'Basic ' + btoa(`${API_USERNAME}:${API_PASSWORD}`)
@@ -49,6 +46,7 @@ function Search() {
               if (data && data.patterns) {
                 data.patterns.forEach(pattern => {
                   const patternInfo = {
+                    id: pattern.id,
                     designer: pattern.designer.name,
                     name: pattern.name,
                   };
@@ -58,9 +56,8 @@ function Search() {
               if (patternArray.length === 0) {
                 Alert.alert('No patterns found');
               } else {
-                /////tietokantaan lisäys
-              }           
-              console.log(patternArray); // POISTA
+                setSearchedItems(patternArray);
+              }
             });
         }
       } else if (itemType === 'yarn') {
@@ -75,6 +72,7 @@ function Search() {
               if (data && data.yarns) {
                 data.yarns.forEach(yarn => {
                   const yarnInfo = {
+                    id: yarn.id,
                     manufacturer: yarn.yarn_company_name,
                     name: yarn.name,
                   };
@@ -83,14 +81,19 @@ function Search() {
                 if (yarnArray.length === 0) {
                   Alert.alert('No yarns found');
                 } else {
-                  /////tietokantaan lisäys
-               //   Alert.alert(yarnArray[0].manufacturer + ' ' + yarnArray[0].name)
+                  setSearchedItems(yarnArray);
                 }
               }
-              console.log(yarnArray);
             });
         }
+      } else {
+        if (itemType === ('') && (search.length === 0)) {
+          Alert.alert("Please select a search category and enter some text to the search bar");
+        } else if ((search.length > 0) && itemType === ('')) {
+          Alert.alert("Please select a search category first");
+        }
       }
+      Keyboard.dismiss();
     } catch (error) {
       console.error('Error', error);
     }
@@ -117,29 +120,137 @@ function Search() {
       },
     );
 
-    useEffect(() => {
+  const loadSavedItems = () => {
     const itemsRef = ref(database, 'items/');
     onValue(itemsRef, (snapshot) => {
       const data = snapshot.val();
       const results = data ? Object.keys(data).map(key => ({ key, ...data[key] })) : [];
       setItems(results);
-    })
-  }, []);
+    });
+  };
+
+  useEffect(() => {
+    if (itemType === '') {
+      loadSavedItems();
+    }
+  }, [itemType]);
+
+  const saveItem = async (item) => {
+    try {
+      const itemsRef = ref(database, 'items/');
+      const snapshot = await get(itemsRef);
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const existingItem = Object.values(data).find(
+          (savedItem) => savedItem.id === item.id && savedItem.itemType === itemType
+        );
+        if (existingItem) {
+          Alert.alert('This item has already been added to favorites');
+          return;
+        }
+      }
+      if (itemType === 'pattern') {
+        const newItemRef = push(ref(database, 'items/'), {
+          'itemType': itemType,
+          'id': item.id,
+          'designer': item.designer,
+          'name': item.name,
+        });
+        setItems((prevItems) => [
+          ...prevItems,
+          {
+            'itemType': itemType,
+            'id': item.id,
+            'designer': item.designer,
+            'name': item.name,
+            'id': newItemRef.key,
+          },
+        ]);
+        Alert.alert('Added to favorites');
+      } else if (itemType === 'yarn') {
+        const newItemRef = push(ref(database, 'items/'), {
+          'itemType': itemType,
+          'id': item.id,
+          'manufacturer': item.manufacturer, // Add the manufacturer field for yarn
+          'name': item.name,
+        });
+        setItems((prevItems) => [
+          ...prevItems,
+          {
+            'itemType': itemType,
+            'id': item.id,
+            'manufacturer': item.manufacturer,
+            'name': item.name,
+            'id': newItemRef.key,
+          },
+        ]);
+        Alert.alert('Added to favorites');
+      }
+    } catch (error) {
+      Alert.alert('Something went wrong!')
+    }
+  };
+
+  const confirmSave = (item, itemType) => {
+    if (itemType === 'pattern') {
+      Alert.alert(
+        'Add the selected pattern to favorites?',
+        '',
+        [
+          {
+            text: 'Cancel',
+          },
+          {
+            text: 'Yes',
+            onPress: () => saveItem(item),
+          }
+        ],
+        {
+          cancelable: true
+        }
+      );
+    } else if (itemType === 'yarn') {
+      Alert.alert(
+        'Add the selected yarn to favorites?',
+        '',
+        [
+          {
+            text: 'Cancel',
+          },
+          {
+            text: 'Yes',
+            onPress: () => saveItem(item),
+          }
+        ],
+        {
+          cancelable: true
+        }
+      );
+    }
+  }
+
+  const clearSearch = () => {
+    setItems([]);
+    setSearch('');
+    setItemType('');
+    setSearchBarText('Please choose a category from above');
+    setSearchedItems([]);
+    Keyboard.dismiss();
+  };
 
   return (
-
     <View style={styles.container}>
-      <Text style={styles.h1}>Pattern and yarn search</Text>
       <Button onPress={categorySheet} color='#d9a5cc' title="What category do you want to search?" />
       <Input
         inputContainerStyle={styles.input}
-        placeholder={searhBarText}
+        placeholder={searchBarText}
         onChangeText={search => setSearch(search)}
         value={search}
       />
       <View style={styles.searchContainer}>
         <View style={{ flex: 1 }}>
-        </View><View style={styles.searchButton}>
+        </View>
+        <View style={styles.searchButtons}>
           <Button
             title='Search'
             onPress={searchContent}
@@ -151,24 +262,57 @@ function Search() {
               color: '#ffffff'
             }}
           />
+          <View style={styles.space} />
+          <Button
+            onPress={clearSearch}
+            color='#d9a5cc'
+            title="Clear Search"
+          />
         </View>
       </View>
+      <ScrollView>
+        {searchedItems.map((item) => (
+          <Card key={item.id} containerStyle={styles.cardContainer}>
+            <View style={styles.textContainer}>
+              {itemType === 'pattern' ? (
+                <View>
+                  <Text>Designer: {item.designer}</Text>
+                  <Text>Pattern name: {item.name}</Text>
+                  <Icon
+                    onPress={() => confirmSave(item, 'pattern')}
+                    size={30}
+                    name='heart'
+                    type='ionicon'
+                    color='#d9a5cc'
+                  />
+                </View>
+              ) : itemType === 'yarn' ? (
+                <View>
+                  <Text>Manufacturer: {item.manufacturer}</Text>
+                  <Text>Yarn name: {item.name}</Text>
+                  <Icon
+                    onPress={() => confirmSave(item, 'yarn')}
+                    size={30}
+                    name='heart'
+                    type='ionicon'
+                    color='#d9a5cc'
+                  />
+                </View>
+              ) : null}
+            </View>
+          </Card>
+        ))}
+      </ScrollView>
     </View>
   )
 }
-
-export default Search;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  h1: {
-    fontSize: 30,
-    margin: 10,
+    justifyContent: 'top',
   },
   input: {
     width: 350,
@@ -178,24 +322,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     margin: 10,
   },
-  picker: {
-    height: 50,
-    width: 200,
-    borderColor: "lightgrey",
-    borderWidth: 1,
-    marginLeft: 20,
-  },
-  searchButton: {
+  searchButtons: {
     marginRight: 20,
+    flexDirection: 'row'
   },
-
-  text: {
-    fontSize: 16,
-    marginBottom: 10,
+  textContainer: {
+    width: '90%',
   },
-  button: {
-    width: 100,
-    marginTop: 10,
-    marginRight: 10,
+  space: {
+    width: 5,
+  },
+  cardContainer: {
+    marginBottom: 5,
+    flex: 1,
   },
 });
