@@ -45,12 +45,22 @@ export default function Search() {
               const patternArray = [];
               if (data && data.patterns) {
                 data.patterns.forEach(pattern => {
+                  const sources = pattern.pattern_sources.map(source => ({
+                    sourceName: source.name,
+                  }));
+                  const sourceNames = sources[0]?.name === sources[1]?.name;
+                  const sourceName = sourceNames
+                    ? sources[0]?.sourceName
+                    : `${sources[0]?.sourceName}/${sources[1]?.sourceName}`;
                   const patternInfo = {
                     id: pattern.id,
                     designer: pattern.designer.name,
                     name: pattern.name,
+                    sources: sources,
+                    sourceName: sourceName,
                   };
                   patternArray.push(patternInfo);
+                  console.log(data.patterns[0]);
                 });
               }
               if (patternArray.length === 0) {
@@ -150,12 +160,14 @@ export default function Search() {
         }
       }
       if (itemType === 'pattern') {
+        const sources = item.sources.map(source => source.sourceName).join('/');
         const newItemRef = push(ref(database, 'items/'), {
           'itemType': itemType,
           'id': item.id,
           'designer': item.designer,
           'name': item.name,
-        });
+          'sourceName': sources, 
+                });
         setItems((prevItems) => [
           ...prevItems,
           {
@@ -163,6 +175,7 @@ export default function Search() {
             'id': item.id,
             'designer': item.designer,
             'name': item.name,
+            'sourceName': sources,
             'id': newItemRef.key,
           },
         ]);
@@ -171,7 +184,7 @@ export default function Search() {
         const newItemRef = push(ref(database, 'items/'), {
           'itemType': itemType,
           'id': item.id,
-          'manufacturer': item.manufacturer, // Add the manufacturer field for yarn
+          'manufacturer': item.manufacturer,
           'name': item.name,
         });
         setItems((prevItems) => [
@@ -273,11 +286,23 @@ export default function Search() {
       <ScrollView>
         {searchedItems.map((item) => (
           <Card key={item.id} containerStyle={styles.cardContainer}>
-            <View style={styles.textContainer}>
+            <View>
               {itemType === 'pattern' ? (
                 <View>
                   <Text>Designer: {item.designer}</Text>
                   <Text>Pattern name: {item.name}</Text>
+                  <View>
+                    {item.sources.map((source, index) => (
+                      <View key={index}>
+                        {index === 0 && (
+                          <Text>Book or source: {source.sourceName}</Text>
+                        )}
+                        {index > 0 && (
+                          <Text>/ {source.sourceName}</Text>
+                        )}
+                      </View>))}
+                  </View>
+                  <View style={styles.iconContainer}>
                   <Icon
                     onPress={() => confirmSave(item, 'pattern')}
                     size={30}
@@ -285,6 +310,7 @@ export default function Search() {
                     type='ionicon'
                     color='#d9a5cc'
                   />
+                  </View>
                 </View>
               ) : itemType === 'yarn' ? (
                 <View>
@@ -326,14 +352,19 @@ const styles = StyleSheet.create({
     marginRight: 20,
     flexDirection: 'row'
   },
-  textContainer: {
-    width: '90%',
-  },
   space: {
     width: 5,
   },
   cardContainer: {
     marginBottom: 5,
+    width: 350,
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconContainer: {
+    alignItems: 'center',
+   marginTop: 10,
+
   },
 });
