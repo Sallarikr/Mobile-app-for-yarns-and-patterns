@@ -1,4 +1,4 @@
-import { Button, Icon, Input, Text } from '@rneui/themed';
+import { Button, Icon, Image, Input, Text } from '@rneui/themed';
 import { Card } from "@rneui/base";
 import { ActionSheetIOS, ActivityIndicator, Alert, Keyboard, ScrollView, StyleSheet, View } from 'react-native';
 import { useState, useEffect } from "react";
@@ -33,7 +33,7 @@ export default function Search() {
     }
   };
 
-  const fetchYarnExtras = async (patternId) => {
+  const fetchPatternExtras = async (patternId) => {
     try {
       const ravelryPatternItemURL = `https://api.ravelry.com/patterns/${patternId}.json`;
       const response = await fetch(ravelryPatternItemURL, options);
@@ -54,7 +54,7 @@ export default function Search() {
       };
       return yarnExtras;
     } catch (error) {
-      console.error('Error fetching yarn weight data:', error);
+      console.error('Error fetching data:', error);
       return 'Unknown';
     }
   };
@@ -88,7 +88,8 @@ export default function Search() {
                     sources: sources,
                     sourceName: sourceName,
                     free: pattern.free,
-                    yarn_extras: await fetchYarnExtras(pattern.id),
+                    image: pattern.first_photo ? pattern.first_photo.medium_url : 'https://st4.depositphotos.com/14953852/24787/v/450/depositphotos_247872612-stock-illustration-no-image-available-icon-vector.jpg',
+                    yarn_extras: await fetchPatternExtras(pattern.id),
                   };
                   patternArray.push(patternInfo);
                 }
@@ -125,6 +126,7 @@ export default function Search() {
                     machine_washable: yarn.machine_washable,
                     grams: yarn.grams,
                     yardage: yarn.yardage,
+                    image: yarn.first_photo ? yarn.first_photo.medium_url : 'https://st4.depositphotos.com/14953852/24787/v/450/depositphotos_247872612-stock-illustration-no-image-available-icon-vector.jpg',
                   };
                   yarnArray.push(yarnInfo);
                 });
@@ -215,6 +217,7 @@ export default function Search() {
           'name': item.name,
           'sourceName': sources,
           'free': item.free,
+          'image': item.image,
           'craft': item.yarn_extras.craft,
           'languages': item.yarn_extras.languages,
           'needles': item.yarn_extras.needles,
@@ -231,6 +234,7 @@ export default function Search() {
             'name': item.name,
             'sourceName': sources,
             'free': item.free,
+            'image': item.image,
             'craft': item.yarn_extras.craft,
             'languages': item.yarn_extras.languages,
             'needles': item.yarn_extras.needles,
@@ -252,6 +256,7 @@ export default function Search() {
           'machine_washable': item.machine_washable,
           'grams': item.grams,
           'yardage': item.yardage,
+          'image': item.image,
         });
         setItems((prevItems) => [
           ...prevItems,
@@ -265,6 +270,7 @@ export default function Search() {
             'machine_washable': item.machine_washable,
             'grams': item.grams,
             'yardage': item.yardage,
+            'image': item.image,
             'id': newItemRef.key,
           },
         ]);
@@ -366,6 +372,11 @@ export default function Search() {
             <View>
               {itemType === 'pattern' ? (
                 <View>
+                  <View>
+                    <Image
+                      style={styles.images}
+                      source={{ uri: item.image }}
+                    /></View>
                   <Text>Designer: {item.designer}</Text>
                   <Text>Pattern name: {item.name}</Text>
                   <Text>Free: {item.free ? 'Yes' : 'No'}</Text>
@@ -398,6 +409,12 @@ export default function Search() {
                 </View>
               ) : itemType === 'yarn' ? (
                 <View>
+                  <View>
+                    <Image
+                      style={styles.images}
+                      source={{ uri: item.image }}
+                    />
+                  </View>
                   <Text>Manufacturer: {item.manufacturer}</Text>
                   <Text>Yarn name: {item.name}</Text>
                   <Text>Yarn weight: {item.yarn_weight}</Text>
@@ -462,5 +479,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  },
+  images: {
+    width: 250,
+    height: 250,
   },
 });
