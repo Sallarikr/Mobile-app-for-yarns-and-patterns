@@ -313,15 +313,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     borderColor: 'rgba(0, 0, 0, 0.1)',
   },
-  smallModalContent: {
-    backgroundColor: '#d9a5cc',
-    padding: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 4,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
-    height: 350,
-  },
   buttonImage: {
     width: 225,
     height: 225,
@@ -335,9 +326,6 @@ const styles = StyleSheet.create({
   },
   h2: {
     fontSize: 25,
-  },
-  text: {
-    fontSize: 16,
   },
   searchInput: {
     height: 40,
