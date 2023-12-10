@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import PatternsImg from '../images/PatternsImg.jpg';
 import YarnsImg from '../images/YarnsImg.jpg';
 import { initializeApp } from 'firebase/app';
-import { getDatabase, remove, ref, onValue } from 'firebase/database';
+import { getDatabase, remove, ref, push, onValue } from 'firebase/database';
 import firebaseConfig from '../firebaseConfig';
 
 const app = initializeApp(firebaseConfig);
@@ -96,6 +96,15 @@ export default function Favorites() {
     Keyboard.dismiss();
   };
 
+  const addToShoppingList = (item) => {
+    const shoppingListItem = {
+      manufacturer: item.manufacturer,
+      name: item.name,
+    };
+    push(ref(database, 'shoppingList/'), shoppingListItem);
+    Alert.alert('Item added to shopping list');
+  };
+
   return (
     <View style={styles.modalCardContainer}>
       <Card>
@@ -149,9 +158,9 @@ export default function Favorites() {
                       </Modal>
                       <View style={styles.buttonContainer}>
                         <Button
+                          buttonStyle={{ width: 85 }}
                           titleStyle={{ fontSize: 16 }}
                           color='#d9a5cc'
-                          title='Information'
                           onPress={() => togglePatternInfoModal(item.key)}
                           icon={{
                             size: 16,
@@ -162,9 +171,9 @@ export default function Favorites() {
                         />
                         <View style={styles.space} />
                         <Button
+                          buttonStyle={{ width: 85 }}
                           titleStyle={{ fontSize: 16 }}
                           color='#d9a5cc'
-                          title='Delete'
                           onPress={() => confirmDeletion(item.key)}
                           icon={{
                             size: 16,
@@ -230,9 +239,9 @@ export default function Favorites() {
                       </Modal>
                       <View style={styles.buttonContainer}>
                         <Button
+                          buttonStyle={{ width: 85 }}
                           titleStyle={{ fontSize: 16 }}
                           color='#d9a5cc'
-                          title='Information'
                           onPress={() => toggleYarnInfoModal(item.key)}
                           icon={{
                             size: 16,
@@ -243,9 +252,22 @@ export default function Favorites() {
                         />
                         <View style={styles.space} />
                         <Button
+                          buttonStyle={{ width: 85 }}
                           titleStyle={{ fontSize: 16 }}
                           color='#d9a5cc'
-                          title='Delete'
+                          onPress={() => addToShoppingList(item)}
+                          icon={{
+                            size: 16,
+                            name: 'cart',
+                            type: 'ionicon',
+                            color: '#ffffff'
+                          }}
+                        />
+                        <View style={styles.space} />
+                        <Button
+                          buttonStyle={{ width: 85 }}
+                          titleStyle={{ fontSize: 16 }}
+                          color='#d9a5cc'
                           onPress={() => confirmDeletion(item.key)}
                           icon={{
                             size: 16,
