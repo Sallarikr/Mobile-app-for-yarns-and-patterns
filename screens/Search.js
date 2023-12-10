@@ -357,7 +357,7 @@ export default function Search() {
           <Button
             onPress={clearSearch}
             color='#d9a5cc'
-            title="Clear Search"
+            title="Clear"
           />
         </View>
       </View>
