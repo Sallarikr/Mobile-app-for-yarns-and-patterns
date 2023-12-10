@@ -44,7 +44,7 @@ export default function Search() {
       const yardage_min = data.pattern.yardage;
       const yardage_max = data.pattern.yardage_max;
       const yarn_weight = data.pattern.yarn_weight ? data.pattern.yarn_weight.name : 'Unknown';
-      const yarnExtras = {
+      const patternExtras = {
         craft: craft,
         languages: languages,
         needles: needles,
@@ -52,7 +52,7 @@ export default function Search() {
         yardage_max: yardage_max,
         yarn_weight: yarn_weight,
       };
-      return yarnExtras;
+      return patternExtras;
     } catch (error) {
       console.error('Error fetching data:', error);
       return 'Unknown';
@@ -89,7 +89,7 @@ export default function Search() {
                     sourceName: sourceName,
                     free: pattern.free,
                     image: pattern.first_photo ? pattern.first_photo.medium_url : 'https://st4.depositphotos.com/14953852/24787/v/450/depositphotos_247872612-stock-illustration-no-image-available-icon-vector.jpg',
-                    yarn_extras: await fetchPatternExtras(pattern.id),
+                    pattern_extras: await fetchPatternExtras(pattern.id),
                   };
                   patternArray.push(patternInfo);
                 }
@@ -218,12 +218,12 @@ export default function Search() {
           'sourceName': sources,
           'free': item.free,
           'image': item.image,
-          'craft': item.yarn_extras.craft,
-          'languages': item.yarn_extras.languages,
-          'needles': item.yarn_extras.needles,
-          'yardage_min': item.yarn_extras.yardage_min,
-          'yardage_max': item.yarn_extras.yardage_max,
-          'yarn_weight': item.yarn_extras.yarn_weight,
+          'craft': item.pattern_extras.craft,
+          'languages': item.pattern_extras.languages,
+          'needles': item.pattern_extras.needles,
+          'yardage_min': item.pattern_extras.yardage_min,
+          'yardage_max': item.pattern_extras.yardage_max,
+          'yarn_weight': item.pattern_extras.yarn_weight,
         });
         setItems((prevItems) => [
           ...prevItems,
@@ -235,12 +235,12 @@ export default function Search() {
             'sourceName': sources,
             'free': item.free,
             'image': item.image,
-            'craft': item.yarn_extras.craft,
-            'languages': item.yarn_extras.languages,
-            'needles': item.yarn_extras.needles,
-            'yardage_min': item.yarn_extras.yardage_min,
-            'yardage_max': item.yarn_extras.yardage_max,
-            'yarn_weight': item.yarn_extras.yarn_weight,
+            'craft': item.pattern_extras.craft,
+            'languages': item.pattern_extras.languages,
+            'needles': item.pattern_extras.needles,
+            'yardage_min': item.pattern_extras.yardage_min,
+            'yardage_max': item.pattern_extras.yardage_max,
+            'yarn_weight': item.pattern_extras.yarn_weight,
             'id': newItemRef.key,
           },
         ]);
@@ -372,20 +372,21 @@ export default function Search() {
             <View>
               {itemType === 'pattern' ? (
                 <View>
+                   <Text style={styles.h1}>Designer: {item.designer}</Text>
+                  <Text style={styles.h1}>Pattern name: {item.name}</Text>
+                 
                   <View>
                     <Image
                       style={styles.images}
                       source={{ uri: item.image }}
                     /></View>
-                  <Text>Designer: {item.designer}</Text>
-                  <Text>Pattern name: {item.name}</Text>
                   <Text>Free: {item.free ? 'Yes' : 'No'}</Text>
-                  <Text>Craft: {item.yarn_extras.craft}</Text>
-                  <Text>Languages: {item.yarn_extras.languages.join(', ')}</Text>
-                  <Text>Needles: {item.yarn_extras.needles.join(', ')}</Text>
-                  <Text>Yardage: {item.yarn_extras.yardage_min} - {item.yarn_extras.yardage_max} yards</Text>
-                  <Text>Yardage in meters: {Math.round(item.yarn_extras.yardage_min * 0.9144)} - {Math.round(item.yarn_extras.yardage_max * 0.9144)} meters</Text>
-                  <Text>Yarn weight: {item.yarn_extras.yarn_weight}</Text>
+                  <Text>Craft: {item.pattern_extras.craft}</Text>
+                  <Text>Languages: {item.pattern_extras.languages.join(', ')}</Text>
+                  <Text>Needles: {item.pattern_extras.needles.join(', ')}</Text>
+                  <Text>Yardage: {item.pattern_extras.yardage_min} - {item.pattern_extras.yardage_max} yards</Text>
+                  <Text>Yardage in meters: {Math.round(item.pattern_extras.yardage_min * 0.9144)} - {Math.round(item.pattern_extras.yardage_max * 0.9144)} meters</Text>
+                  <Text>Yarn weight: {item.pattern_extras.yarn_weight}</Text>
                   <View>
                     {item.sources.map((source, index) => (
                       <View key={index}>
@@ -400,7 +401,7 @@ export default function Search() {
                   <View style={styles.iconContainer}>
                     <Icon
                       onPress={() => confirmSave(item, 'pattern')}
-                      size={30}
+                      size={40}
                       name='heart'
                       type='ionicon'
                       color='#d9a5cc'
@@ -425,7 +426,7 @@ export default function Search() {
                   <Text>Yardage in meters: {Math.round(item.yardage * 0.9144)} meters</Text>
                   <Icon
                     onPress={() => confirmSave(item, 'yarn')}
-                    size={30}
+                    size={40}
                     name='heart'
                     type='ionicon'
                     color='#d9a5cc'
@@ -456,7 +457,7 @@ const styles = StyleSheet.create({
     margin: 10,
   },
   searchButtons: {
-    marginRight: 20,
+    marginRight: 35,
     flexDirection: 'row'
   },
   space: {
@@ -481,7 +482,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
   },
   images: {
-    width: 250,
-    height: 250,
+    width: 300,
+    height: 300,
   },
+  h1: {
+    fontSize: 20
+  }
 });
