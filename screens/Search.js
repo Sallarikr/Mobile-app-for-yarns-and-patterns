@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { decode, encode } from 'base-64';
 import { API_USERNAME, API_PASSWORD } from '@env';
 import { initializeApp } from 'firebase/app';
-import { getDatabase, push, get, ref, onValue } from 'firebase/database';
+import { getDatabase, push, get, set, ref, onValue } from 'firebase/database';
 import firebaseConfig from '../firebaseConfig';
 
 if (!global.btoa) {
@@ -329,6 +329,28 @@ export default function Search() {
     Keyboard.dismiss();
   };
 
+
+  const saveToShoppingList = async (item) => {
+    try {
+      const shoppingListRef = ref(database, 'shoppingList/');
+      const snapshot = await get(shoppingListRef);
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const existingItem = Object.values(data).find(
+          (shoppingListItem) => shoppingListItem.id === item.id
+        );
+        if (existingItem) {
+          Alert.alert('This item is already in the shopping list');
+          return;
+        }
+      }
+      const newItemRef = push(shoppingListRef, item);
+      Alert.alert('Saved to shopping list');
+    } catch (error) {
+      Alert.alert('Error saving to Shopping List');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Button onPress={categorySheet} color='#d9a5cc' title="What category do you want to search?" />
@@ -358,6 +380,12 @@ export default function Search() {
             onPress={clearSearch}
             color='#d9a5cc'
             title="Clear"
+            icon={{
+              size: 16,
+              name: 'close-circle-outline',
+              type: 'ionicon',
+              color: '#ffffff'
+            }}
           />
         </View>
       </View>
@@ -372,29 +400,28 @@ export default function Search() {
             <View>
               {itemType === 'pattern' ? (
                 <View>
-                   <Text style={styles.h1}>Designer: {item.designer}</Text>
-                  <Text style={styles.h1}>Pattern name: {item.name}</Text>
-                 
+                  <Text style={styles.h1}>Designer: {item.designer ?? 'Unknown'}</Text>
+                  <Text style={styles.h1}>Pattern name: {item.name ?? 'Unknown'}</Text>
                   <View>
                     <Image
                       style={styles.images}
                       source={{ uri: item.image }}
                     /></View>
-                  <Text>Free: {item.free ? 'Yes' : 'No'}</Text>
-                  <Text>Craft: {item.pattern_extras.craft}</Text>
-                  <Text>Languages: {item.pattern_extras.languages.join(', ')}</Text>
-                  <Text>Needles: {item.pattern_extras.needles.join(', ')}</Text>
-                  <Text>Yardage: {item.pattern_extras.yardage_min} - {item.pattern_extras.yardage_max} yards</Text>
-                  <Text>Yardage in meters: {Math.round(item.pattern_extras.yardage_min * 0.9144)} - {Math.round(item.pattern_extras.yardage_max * 0.9144)} meters</Text>
-                  <Text>Yarn weight: {item.pattern_extras.yarn_weight}</Text>
+                  <Text style={styles.text}>Free: {item.free ? 'Yes' : 'No'}</Text>
+                  <Text style={styles.text}>Craft: {item.pattern_extras.craft ?? 'Unknown'}</Text>
+                  <Text style={styles.text}>Languages: {item.pattern_extras.languages.join(', ') ?? 'Unknown'}</Text>
+                  <Text style={styles.text}>Needles: {item.pattern_extras.needles.join(', ') ?? 'Unknown'}</Text>
+                  <Text style={styles.text}>Yardage: {item.pattern_extras.yardage_min ?? 0} - {item.pattern_extras.yardage_max ?? 0} yards</Text>
+                  <Text style={styles.text}>Yardage in meters: {Math.round(item.pattern_extras.yardage_min * 0.9144) ?? 0} - {Math.round(item.pattern_extras.yardage_max * 0.9144) ?? 0} meters</Text>
+                  <Text style={styles.text}>Yarn weight: {item.pattern_extras.yarn_weight ?? 'Unknown'}</Text>
                   <View>
                     {item.sources.map((source, index) => (
                       <View key={index}>
                         {index === 0 && (
-                          <Text>Book or source: {source.sourceName}</Text>
+                          <Text style={styles.text}>Book or source: {source.sourceName}</Text>
                         )}
                         {index > 0 && (
-                          <Text>/ {source.sourceName}</Text>
+                          <Text style={styles.text}>/ {source.sourceName}</Text>
                         )}
                       </View>))}
                   </View>
@@ -410,27 +437,37 @@ export default function Search() {
                 </View>
               ) : itemType === 'yarn' ? (
                 <View>
+                  <Text style={styles.h1}>Manufacturer: {item.manufacturer ?? 'Unknown'}</Text>
+                  <Text style={styles.h1}>Yarn name: {item.name ?? 'Unknown'}</Text>
                   <View>
                     <Image
                       style={styles.images}
                       source={{ uri: item.image }}
                     />
                   </View>
-                  <Text>Manufacturer: {item.manufacturer}</Text>
-                  <Text>Yarn name: {item.name}</Text>
-                  <Text>Yarn weight: {item.yarn_weight}</Text>
-                  <Text>Discontinued: {item.discontinued ? 'Yes' : 'No'}</Text>
-                  <Text>Machine washable: {item.machine_washable ? 'Yes' : 'No'}</Text>
-                  <Text>Grams: {item.grams} grams</Text>
-                  <Text>Yardage: {item.yardage} yards</Text>
-                  <Text>Yardage in meters: {Math.round(item.yardage * 0.9144)} meters</Text>
-                  <Icon
-                    onPress={() => confirmSave(item, 'yarn')}
-                    size={40}
-                    name='heart'
-                    type='ionicon'
-                    color='#d9a5cc'
-                  />
+                  <Text style={styles.text}>Yarn weight: {item.yarn_weight ?? 'Unknown'}</Text>
+                  <Text style={styles.text}>Discontinued: {item.discontinued ? 'Yes' : 'No'}</Text>
+                  <Text style={styles.text}>Machine washable: {item.machine_washable ? 'Yes' : 'No'}</Text>
+                  <Text style={styles.text}>Grams: {item.grams ?? 0} grams</Text>
+                  <Text style={styles.text}>Yardage: {item.yardage ?? 0} yards</Text>
+                  <Text style={styles.text}>Yardage in meters: {Math.round(item.yardage * 0.9144) ?? 0} meters</Text>
+                  <View style={styles.yarnButtons}>
+                    <Icon
+                      onPress={() => confirmSave(item, 'yarn')}
+                      size={40}
+                      name='heart'
+                      type='ionicon'
+                      color='#d9a5cc'
+                    />
+                    <View style={styles.space} />
+                    <Icon
+                      onPress={() => saveToShoppingList(item)}
+                      size={40}
+                      name='cart'
+                      type='ionicon'
+                      color='#d9a5cc'
+                    />
+                  </View>
                 </View>
               ) : null}
             </View>
@@ -487,5 +524,13 @@ const styles = StyleSheet.create({
   },
   h1: {
     fontSize: 20
-  }
+  },
+  text: {
+    fontSize: 16
+  },
+  yarnButtons: {
+    marginRight: 35,
+    flexDirection: 'row',
+    justifyContent: 'center'
+  },
 });
