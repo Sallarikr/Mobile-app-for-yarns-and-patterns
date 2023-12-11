@@ -82,7 +82,7 @@ export default function Favorites() {
     item.designer.toLowerCase().includes(searchText.toLowerCase()) ||
     item.name.toLowerCase().includes(searchText.toLowerCase()) ||
     item.yarn_weight.toLowerCase().includes(searchText.toLowerCase()) ||
-    item.craft.toLowerCase().includes(searchText.toLowerCase()) 
+    item.craft.toLowerCase().includes(searchText.toLowerCase())
   );
 
   const filteredYarns = yarns.filter((item) =>
@@ -296,7 +296,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    
   },
   modalCardContainer: {
     alignItems: 'center',
