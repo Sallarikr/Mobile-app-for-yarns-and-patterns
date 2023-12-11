@@ -17,12 +17,6 @@ export default function Navigation() {
         <View style={styles.container}>
             <Header
                 backgroundColor="#d9a5cc"
-                centerComponent={{
-                    text: "Yarn and pattern stash",
-                    style: { color: "#fff", fontSize: 22 },
-                }}
-                leftComponent={{ icon: "menu", color: "#fff", size: 28 }}
-                rightComponent={{ icon: "person", color: "#fff", size: 28 }}
             />
             <NavigationContainer>
                 <Tab.Navigator
