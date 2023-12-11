@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { decode, encode } from 'base-64';
 import { API_USERNAME, API_PASSWORD } from '@env';
 import { initializeApp } from 'firebase/app';
-import { getDatabase, push, get, set, ref, onValue } from 'firebase/database';
+import { getDatabase, push, get, ref, onValue } from 'firebase/database';
 import firebaseConfig from '../firebaseConfig';
 
 if (!global.btoa) {
@@ -328,7 +328,6 @@ export default function Search() {
     setLoading(false);
     Keyboard.dismiss();
   };
-
 
   const saveToShoppingList = async (item) => {
     try {
