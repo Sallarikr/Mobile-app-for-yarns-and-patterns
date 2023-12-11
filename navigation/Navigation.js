@@ -1,7 +1,6 @@
 import * as React from "react";
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
-import { Header } from '@rneui/themed';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -15,10 +14,7 @@ const Tab = createBottomTabNavigator();
 export default function Navigation() {
     return (
         <View style={styles.container}>
-            <Header
-                backgroundColor="#d9a5cc"
-            />
-            <NavigationContainer>
+            <NavigationContainer independent={true}>
                 <Tab.Navigator
                     screenOptions={({ route }) => ({
                         "tabBarActiveTintColor": "#d9a5cc",
@@ -29,7 +25,7 @@ export default function Navigation() {
                                 iconName = focused ? 'search' : 'search';
                             } else if (route.name === 'Favorites') {
                                 iconName = focused ? 'heart' : 'heart';
-                            } else if (route.name === 'Home') {
+                            } else if (route.name === '♡Yarns & patterns♡') {
                                 iconName = focused ? 'home' : 'home';
                             } else if (route.name === 'Shopping List') {
                                 iconName = focused ? 'shopping-cart' : 'shopping-cart';
@@ -38,10 +34,10 @@ export default function Navigation() {
                         },
                     })}
                 >
-                    <Tab.Screen name="Home" component={Home} options={{ headerShown: false }} />
-                    <Tab.Screen name="Search" component={Search} />
-                    <Tab.Screen name="Favorites" component={Favorites} />
-                    <Tab.Screen name="Shopping List" component={ShoppingList} />
+                    <Tab.Screen name="♡Yarns & patterns♡" component={Home} options={{ headerShown: false }} />
+                    <Tab.Screen name="Search" component={Search} options={{ headerShown: false }} />
+                    <Tab.Screen name="Favorites" component={Favorites} options={{ headerShown: false }} />
+                    <Tab.Screen name="Shopping List" component={ShoppingList} options={{ headerShown: false }} />
                 </Tab.Navigator>
             </NavigationContainer>
             <StatusBar style="auto" />
@@ -51,8 +47,6 @@ export default function Navigation() {
 
 const styles = StyleSheet.create({
     container: {
-        paddingTop: 20,
         flex: 1,
-        backgroundColor: '#d9a5cc',
     },
 });
