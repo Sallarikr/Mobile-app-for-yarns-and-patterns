@@ -37,7 +37,7 @@ const Authentication = () => {
     <View style={styles.container}>
       {isBiometricAvailable && (
         <TouchableOpacity onPress={handleAuthenticate} style={styles.button}>
-          <Text style={styles.buttonText}>Authenticate with Biometrics</Text>
+          <Text style={styles.buttonText}>Log in</Text>
         </TouchableOpacity>
       )}
     </View>
