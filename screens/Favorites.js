@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import PatternsImg from '../images/PatternsImg.jpg';
 import YarnsImg from '../images/YarnsImg.jpg';
 import { initializeApp } from 'firebase/app';
-import { getDatabase, remove, ref, push, onValue } from 'firebase/database';
+import { getDatabase, remove, ref, onValue } from 'firebase/database';
 import firebaseConfig from '../firebaseConfig';
 
 const app = initializeApp(firebaseConfig);
@@ -53,9 +53,6 @@ export default function Favorites() {
     });
   }, []);
 
-  useEffect(() => {
-  }, [selectedItem]);
-
   const deleteItem = (key) => {
     remove(
       ref(database, 'items/' + key))
@@ -83,26 +80,20 @@ export default function Favorites() {
 
   const filteredPatterns = patterns.filter((item) =>
     item.designer.toLowerCase().includes(searchText.toLowerCase()) ||
-    item.name.toLowerCase().includes(searchText.toLowerCase())
+    item.name.toLowerCase().includes(searchText.toLowerCase()) ||
+    item.yarn_weight.toLowerCase().includes(searchText.toLowerCase()) ||
+    item.craft.toLowerCase().includes(searchText.toLowerCase()) 
   );
 
   const filteredYarns = yarns.filter((item) =>
     item.manufacturer.toLowerCase().includes(searchText.toLowerCase()) ||
-    item.name.toLowerCase().includes(searchText.toLowerCase())
+    item.name.toLowerCase().includes(searchText.toLowerCase()) ||
+    item.yarn_weight.toLowerCase().includes(searchText.toLowerCase())
   );
 
   const clearSearch = () => {
     setSearchText('');
     Keyboard.dismiss();
-  };
-
-  const addToShoppingList = (item) => {
-    const shoppingListItem = {
-      manufacturer: item.manufacturer,
-      name: item.name,
-    };
-    push(ref(database, 'shoppingList/'), shoppingListItem);
-    Alert.alert('Item added to shopping list');
   };
 
   return (
@@ -255,19 +246,6 @@ export default function Favorites() {
                           buttonStyle={{ width: 85 }}
                           titleStyle={{ fontSize: 16 }}
                           color='#d9a5cc'
-                          onPress={() => addToShoppingList(item)}
-                          icon={{
-                            size: 16,
-                            name: 'cart',
-                            type: 'ionicon',
-                            color: '#ffffff'
-                          }}
-                        />
-                        <View style={styles.space} />
-                        <Button
-                          buttonStyle={{ width: 85 }}
-                          titleStyle={{ fontSize: 16 }}
-                          color='#d9a5cc'
                           onPress={() => confirmDeletion(item.key)}
                           icon={{
                             size: 16,
@@ -299,7 +277,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     flex: 1,
-    width: 350
+    width: 350,
   },
   textContainer: {
     width: '90%'
@@ -318,10 +296,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    
   },
   modalCardContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'white',
+    height: '100%',
   },
   modal: {
     alignItems: 'center',
@@ -336,7 +317,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0, 0, 0, 0.1)',
   },
   buttonImage: {
-    width: 225,
+    width: 300,
     height: 225,
   },
   images: {
