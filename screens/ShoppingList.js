@@ -12,6 +12,7 @@ export default function ShoppingList() {
     onValue(shoppingListRef, (snapshot) => {
       const data = snapshot.val();
       const shoppingList = data ? Object.keys(data).map((key) => ({ key, ...data[key] })) : [];
+      // console.log(shoppingList);
       setShoppingListItems(shoppingList);
     });
   }, []);
@@ -24,12 +25,13 @@ export default function ShoppingList() {
         Alert.alert('Item deleted from shopping list');
       }
     } catch (error) {
+      console.error('Error deleting item:', error);
       if (Alert) {
         Alert.alert('Error deleting item from shopping list');
       }
     }
   };
-
+  
   return (
     <View style={styles.container}>
       <ScrollView>
