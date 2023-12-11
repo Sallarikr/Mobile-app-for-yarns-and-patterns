@@ -1,8 +1,16 @@
-import { Text } from "@rneui/base";
+import { ImageBackground, StyleSheet, View } from 'react-native';
+import Heart from '../images/Heart.png';
 
-export default function App (){
-    return (
+export default function Home() {
+  return (
+    <ImageBackground source={Heart} resizeMode="cover" style={styles.image}>
+    </ImageBackground>
+  );
+}
 
-      <Text>Home, tarvitaanko</Text>
-        );
-    }
+const styles = StyleSheet.create({
+  image: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+})
